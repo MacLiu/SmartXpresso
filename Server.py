@@ -3,6 +3,7 @@ from flask_pymongo import PyMongo
 
 # Configurations
 app = Flask(__name__)
+app.config['MONGO_URI'] = 'mongodb://localhost:27017/SmartXpresso'
 mongo = PyMongo(app)
 
 # Contants
@@ -15,7 +16,7 @@ CONST_SET_TEMP_TYPE = "Set";
 @app.route('/set-temperature', methods=['GET', 'POST'])
 def set_temperature():
     if request.method == 'POST':
-        temperature = request.form['temperature'];
+        temperature = request.json['temperature'];
         update_temperature(CONST_SET_TEMP_TYPE, temperature);
         return str(temperature);
     else:
@@ -28,8 +29,7 @@ def set_temperature():
 @app.route('/min-temperature', methods=['GET', 'POST'])
 def temperature_min():
     if request.method == 'POST':
-
-        min_temperature = request.form['min-temperature'];
+        min_temperature = request.json["min-temperature"];
         update_temperature(CONST_MINIMUM_TEMP_TYPE, min_temperature);
         return str(min_temperature);
     else:
@@ -42,7 +42,7 @@ def temperature_min():
 @app.route('/max-temperature', methods=['GET', 'POST'])
 def temperature_max():
     if request.method == 'POST':
-        max_temperature = request.form['max-temperature'];
+        max_temperature = request.json['max-temperature'];
         update_temperature(CONST_MAXIMUM_TEMP_TYPE, max_temperature);
         return str(max_temperature);
     else:
@@ -55,7 +55,7 @@ def temperature_max():
 
 # UPDATE temperature in Temperature Table of the according type.
 def update_temperature(type, temperature):
-    mongo.Temperature.update_one({"type": type}, {
+    mongo.db.Temperature.update_one({"type": type}, {
         "$set": {
             "temperature": temperature
         }
@@ -64,6 +64,8 @@ def update_temperature(type, temperature):
 
 # GET temperature in the Temperature Table for the type provided.
 def get_temperature(type):
-    temperature_object = mongo.Temperature.findOne({"type": type});
-    return temperature_object["temperature"];
+    temperature_object = mongo.db.Temperature.find({'type' : type});
+
+    # Only one enitity in Temperature Table, so we get the first element.
+    return temperature_object[0]['temperature'];
 #enddef
